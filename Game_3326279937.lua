@@ -1,10 +1,4 @@
-local Drawing = {
-	new = function(Type)
-		return {}
-	end,
-}
-
-local library = game["Run Service"]:IsStudio() and require(script.UiLib) or loadstring(game:HttpGet("https://raw.githubusercontent.com/Consistt/Ui/main/UnLeaked"))()
+local library = game["Run Service"]:IsStudio() and require(script.UiLib) or loadstring(game:HttpGet("https://raw.githubusercontent.com/LARTAJE/LSH_V2_Main/refs/heads/main/LSH_LIBRARY.lua"))()
 local Notif = library:InitNotifications()
 
 if _G.LACKSKILL_LOADED == true then
