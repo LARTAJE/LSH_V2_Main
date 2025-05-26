@@ -816,7 +816,7 @@ local function InjectCustomConfig()
 end
 
 local function DoNpcAdd(Inst)
-	if Inst and Inst:IsA('Model') and Inst.Parent and not Players:GetPlayerFromCharacter(Inst) then
+	if Inst and Inst:IsA('Model') and Inst.Parent and not PlayerService:GetPlayerFromCharacter(Inst) then
 		table.insert(NPCList, Inst)
 	end
 end
