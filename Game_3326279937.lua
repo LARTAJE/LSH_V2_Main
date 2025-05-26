@@ -739,7 +739,7 @@ local function IsCharacterVisible(Character)
 		return
 	end 
 
-	local CastPoints, IgnoreList = {PlayerRoot.Position, LocalPlayerCharacter, Character}, {LocalPlayerCharacter, Character, workspace.Debris, workspace.Map.Snow, workspace.Map.RoadDecor,workspace.Map.Vegetation}
+	local CastPoints, IgnoreList = {PlayerRoot.Position, LocalPlayerCharacter, Character}, {LocalPlayerCharacter, Character, workspace.Debris, workspace.Map.RoadDecor,workspace.Map.Vegetation}
 	local ObscuringObjects = #Camera:GetPartsObscuringTarget(CastPoints, IgnoreList)
 
 	return ((ObscuringObjects == 0 and true) or (ObscuringObjects > 0 and false))
@@ -1139,7 +1139,7 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 
 			if chance == true and Settings.Silent_Toggle == true then
 				if HitPart then
-					if Settings.Silent_InstaHit then
+					if false then--Settings.Silent_InstaHit
 						local pos = HitPart.CFrame + HitPart.CFrame.LookVector * -2
 						local CfTVec = Vector3.new(pos.X, pos.Y, pos.Z)
 						Arguments[2] = CfTVec
