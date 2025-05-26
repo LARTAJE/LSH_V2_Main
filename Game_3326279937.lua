@@ -23,6 +23,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 local ReplicatedFirst = game:GetService("ReplicatedFirst")
+local HTTPService = game:GetService("HttpService")
 local Debris = game:GetService("Debris")
 local PlayerService = game:GetService("Players")
 
@@ -39,6 +40,7 @@ local ConfigNames = {}
 local MeleeStorage = ReplicatedStorage:WaitForChild("MeleeStorage")
 local Events = ReplicatedStorage:WaitForChild("Events",5)
 
+--local success, decoded = pcall(HTTPService.JSONDecode, HTTPService, readfile('KT_COUNTS.json'))
 local PlayersInServer = {}
 local ItemStats = {
 
@@ -516,7 +518,7 @@ local Settings = {
 	NotifItems_Enabled = false,
 	NotifItems_NotifItems = {},
 	
-	ShowBulletTracers = false
+	ShowBulletTracers = true
 }
 local Toggles = {}
 local Sliders = {}
@@ -749,6 +751,9 @@ local function GetClosestPlayer()
 	local Closest
 	local DistanceToMouse
 	local ToCheck = Settings.Silent_IgnoreNPCs == false and NPCList or {}
+	for _, npc in NPCList do
+		warn(npc)
+	end
 	for _, Char in CharList do
 		table.insert(ToCheck, Char)
 	end
@@ -1136,25 +1141,20 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 
 				return raycastResult.Position
 			end
+			
+			if Settings.ShowBulletTracers == true then
+				local pos = F_CastRay(A_Origin, Arguments[3])
+				CreateTracer(A_Origin, pos)
+			end
 
 			if chance == true and Settings.Silent_Toggle == true then
 				if HitPart then
-					if false then--Settings.Silent_InstaHit
-						local pos = HitPart.CFrame + HitPart.CFrame.LookVector * -2
-						local CfTVec = Vector3.new(pos.X, pos.Y, pos.Z)
-						Arguments[2] = CfTVec
-						A_Origin = CfTVec
-					end
+					warn(HitPart)
 					Arguments[3] = GetDirection(A_Origin, HitPart.Position)
 					return oldNamecall(unpack(Arguments))
 				else
 					return oldNamecall(...)
 				end
-			end
-
-			if Settings.ShowBulletTracers == true then
-				local pos = F_CastRay(A_Origin, Arguments[3])
-				CreateTracer(A_Origin, pos)
 			end
 
 		else
