@@ -498,6 +498,7 @@ local Settings = {
 	Silent_ShowSilentTarget = false,
 	Silent_IgnoreNPCs = false,
 	Silent_AimFov = 100,
+	Silent_AimDistance = 250,
 	Silent_AimHitChance = 50,
 	Silent_TargetPart = 'Head',
 
@@ -741,7 +742,7 @@ local function IsCharacterVisible(Character)
 		return
 	end 
 
-	local CastPoints, IgnoreList = {PlayerRoot.Position, LocalPlayerCharacter, Character}, {LocalPlayerCharacter, Character, workspace.Debris, workspace.Map.RoadDecor,workspace.Map.Vegetation}
+	local CastPoints, IgnoreList = {PlayerRoot.Position, LocalPlayerCharacter, Character}, {LocalPlayerCharacter, Character, workspace.Debris, workspace.Map.RoadDecor,workspace.Map.StreetDecor}
 	local ObscuringObjects = #Camera:GetPartsObscuringTarget(CastPoints, IgnoreList)
 
 	return ((ObscuringObjects == 0 and true) or (ObscuringObjects > 0 and false))
@@ -750,6 +751,12 @@ end
 local function GetClosestPlayer()
 	local Closest
 	local DistanceToMouse
+	local LocalPlayerCharacter = LocalPlayer.Character
+	local PlayerRoot = LocalPlayerCharacter:FindFirstChild("HumanoidRootPart")
+	if not (LocalPlayerCharacter) or not PlayerRoot then
+		return
+	end 
+
 	local ToCheck = Settings.Silent_IgnoreNPCs == false and NPCList or {}
 	for _, Char in CharList do
 		table.insert(ToCheck, Char)
@@ -759,23 +766,25 @@ local function GetClosestPlayer()
 		if Character == LocalPlayer then
 			continue
 		end
-
-		if not Character then
-			continue
-		end
-
-		if Settings.Silent_VisibleCheck and not IsCharacterVisible(Character) then
-			continue
-		end
-		local Player = PlayerService:GetPlayerFromCharacter(Character)
-		if Player and Settings.Silent_IgnoreFriends and Player:IsFriendsWith(LocalPlayer.UserId) then
-			continue
-		end
-
 		local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
 		local Humanoid = Character:FindFirstChild("Humanoid")
 
 		if not HumanoidRootPart or not Humanoid or Humanoid and Humanoid.Health <= 0 then continue end
+
+		if not Character then
+			continue
+		end
+		if (HumanoidRootPart.Position - PlayerRoot.Position).Magnitude > Settings.Silent_AimDistance then
+			continue
+		end
+		if Settings.Silent_VisibleCheck and not IsCharacterVisible(Character) then
+			continue
+		end
+		
+		local Player = PlayerService:GetPlayerFromCharacter(Character)
+		if Player and Settings.Silent_IgnoreFriends and Player:IsFriendsWith(LocalPlayer.UserId) then
+			continue
+		end
 
 		local ScreenPosition, OnScreen = GetPositionOnScreen(HumanoidRootPart.Position)
 		if not OnScreen then continue end
@@ -1222,8 +1231,12 @@ local Tabs = {
 					Settings.Silent_Toggle = value
 				end):AddKeybind()
 
-				local SlientAim_FOV = CombatSection:NewSlider("Silent FOV", "", true, "/", {min = 0, max = 2000, default = Settings.Silent_AimFov}, function(value)
+				local SlientAim_FOV = CombatSection:NewSlider("Silent FOV", "", true, "/", {min = 0, max = 400, default = Settings.Silent_AimFov}, function(value)
 					Settings.Silent_AimFov = value
+				end)
+				
+				local SlientAim_Distance = CombatSection:NewSlider("Max distance", "", true, "/", {min = 0, max = 400, default = Settings.Silent_AimFov}, function(value)
+					Settings.Silent_AimDistance = value
 				end)
 
 				local SlientAim_HitChance = CombatSection:NewSlider("Hit chance", "", true, "/", {min = 1, max = 100, default = Settings.Silent_AimHitChance}, function(value)
@@ -1262,6 +1275,7 @@ local Tabs = {
 				Toggles['Silent_ShowSilentTarget'] = Silent_ShowSilentTarget
 				Toggles['Silent_ShowFOV'] = Silent_ShowFOV
 				Sliders['Silent_AimFov'] = SlientAim_FOV
+				Sliders['Silent_AimDistance'] = SlientAim_Distance
 				Sliders['Silent_AimHitChance'] = SlientAim_HitChance
 				Toggles['Silent_VisibleCheck'] = SilentAim_VisibleCheck
 			end,
@@ -1559,7 +1573,7 @@ RunService.RenderStepped:Connect(function()
 		end,
 		['SilentStuff'] = function()
 			if Settings.Silent_Toggle then
-				if tick() - SilentUpdateTick >= 0.025 then
+				if tick() - SilentUpdateTick >= 0.05 then
 					SilentUpdateTick = tick()
 					HitPart = GetClosestPlayer()
 				end
