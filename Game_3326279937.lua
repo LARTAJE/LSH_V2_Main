@@ -768,7 +768,6 @@ local function GetClosestPlayer()
 	for _, NPCChar in NPCList do
 		table.insert(ToCheck, NPCChar)
 	end
-	warn(#NPCList)
 	for _, Char in CharList do
 		table.insert(ToCheck, Char)
 	end
@@ -1242,11 +1241,11 @@ local Tabs = {
 					Settings.Silent_Toggle = value
 				end):AddKeybind()
 
-				local SlientAim_FOV = CombatSection:NewSlider("Silent FOV", "", true, "/", {min = 0, max = 400, default = Settings.Silent_AimFov}, function(value)
+				local SlientAim_FOV = CombatSection:NewSlider("Silent FOV", "", true, "/", {min = 0, max = 4000, default = Settings.Silent_AimFov}, function(value)
 					Settings.Silent_AimFov = value
 				end)
 				
-				local SlientAim_Distance = CombatSection:NewSlider("Max distance", "", true, "/", {min = 0, max = 10000, default = Settings.Silent_AimFov}, function(value)
+				local SlientAim_Distance = CombatSection:NewSlider("Max distance", "", true, "/", {min = 0, max = 10000, default = Settings.Silent_AimDistance}, function(value)
 					Settings.Silent_AimDistance = value
 				end)
 
