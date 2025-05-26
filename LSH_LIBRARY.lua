@@ -1852,15 +1852,17 @@ function library:Init(key)
 				if UserInputService.WindowFocused then
 					UserInputService.InputBegan:Connect(function(c, p)
 						if not p then
-							if c.KeyCode.Name == ChosenKey and not ChatTextBox:IsFocused() then
-								On = not On
-								local SizeOn = On and UDim2.new(0, 12, 0, 12) or UDim2.new(0, 0, 0, 0)
-								local Transparency = On and 0 or 1
-								TweenService:Create(toggleDesign, TweenTable["toggle_form"], {Size = SizeOn}):Play()
-								TweenService:Create(toggleDesign, TweenTable["toggle_form"], {BackgroundTransparency = Transparency}):Play()
-								callback_t(On)
-								return
-							end
+							pcall(function()
+								if c.KeyCode.Name == ChosenKey then
+									On = not On
+									local SizeOn = On and UDim2.new(0, 12, 0, 12) or UDim2.new(0, 0, 0, 0)
+									local Transparency = On and 0 or 1
+									TweenService:Create(toggleDesign, TweenTable["toggle_form"], {Size = SizeOn}):Play()
+									TweenService:Create(toggleDesign, TweenTable["toggle_form"], {BackgroundTransparency = Transparency}):Play()
+									callback_t(On)
+									return
+								end
+							end)
 						end
 					end)
 				end
