@@ -517,7 +517,7 @@ local Settings = {
 
 	NotifItems_Enabled = false,
 	NotifItems_NotifItems = {},
-	
+
 	ShowBulletTracers = true
 }
 local Toggles = {}
@@ -651,7 +651,7 @@ function PlaySound(Settings)
 	NewSound.PlaybackSpeed = Settings.Speed or Settings.PlaybackSpeed
 	NewSound.Volume = Settings.Volume or 0.5
 	NewSound.Parent = Settings.Parent or workspace
-	
+
 	NewSound:Play()
 	Debris:AddItem(NewSound, Settings.DeleteTime or NewSound.TimeLength)
 end
@@ -762,7 +762,7 @@ local function GetClosestPlayer()
 		if Character == LocalPlayer then
 			continue
 		end
-		
+
 		if not Character then
 			continue
 		end
@@ -854,7 +854,7 @@ local function TrackCharacter(Character)
 	Character.AncestryChanged:Once(function()
 		table.remove(CharList, table.find(CharList,Character))
 	end)
-	
+
 	Character.ChildAdded:Connect(function(dsc)
 		if dsc.Name ~= "Photon Accelerator" and dsc.Name ~= "Skyfall T.A.G." and dsc.Name ~= 'RPG-18' then
 			return
@@ -864,12 +864,12 @@ local function TrackCharacter(Character)
 			PlaySound(SoundList.Notif_Error1)
 		end
 	end)
-	
+
 	local function CheckForKit()
 		local Operator = 0
 		local Commander = 0
 		local BladeDancer = 0
-		
+
 		for _, Stuff in Character:WaitForChild('CurrentGear'):GetChildren() do
 			if Stuff.Name:find('Operator') then
 				Operator+=1
@@ -881,7 +881,7 @@ local function TrackCharacter(Character)
 				BladeDancer+=1
 			end
 		end
-		
+
 		if Operator >= 3 then
 			Notif:Notify('!!Operator!! '..Character.Name, 4, "success")
 			PlaySound(SoundList.Notif_Error1)
@@ -902,11 +902,11 @@ end
 
 local function PlayerAdded(Player, Executed)
 	table.insert(PlayersInServer,Player)
-	
+
 	if not Settings.PlayerNotifications_PlayerJoins then
 		return
 	end
-	
+
 	local function IsInGroup(Plr, Id)
 		local Success, Response = pcall(Plr.IsInGroup, Plr, Id)
 		if Success then 
@@ -1118,6 +1118,15 @@ local function CreateTracer(Origin: Vector3, Goto: Vector3)
 		Tracer:Destroy()
 	end)
 end
+local HitPart = nil
+
+local function F_CastRay(origin: Vector3, direction: Vector3)
+	local raycastParams = RaycastParams.new()
+	raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+	raycastParams.FilterDescendantsInstances = {workspace.CurrentCamera, LocalPlayer.Character} -- Ignore the camera
+	local raycastResult = workspace:Raycast(origin, direction, raycastParams)
+	return raycastResult.Position
+end
 
 oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 	local Method = getnamecallmethod()
@@ -1125,43 +1134,25 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 	local Arguments = {...}
 	local self = Arguments[1]
 
-	local chance = CalculateChance(Settings.Silent_AimHitChance)
+	if self == workspace and not checkcaller() and Method == "Raycast" and ValidateArguments(Arguments, ExpectedArguments.Raycast) and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris then
+		local A_Origin = Arguments[2]
 
-	if self == workspace and not checkcaller() and Method == "Raycast" then
-		if ValidateArguments(Arguments, ExpectedArguments.Raycast) and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris then
-			local A_Origin = Arguments[2]
-			local HitPart = GetClosestPlayer()
-
-			local function F_CastRay(origin: Vector3, direction: Vector3)
-				local raycastParams = RaycastParams.new()
-				raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-				raycastParams.FilterDescendantsInstances = {workspace.CurrentCamera, LocalPlayer.Character} -- Ignore the camera
-
-				local raycastResult = workspace:Raycast(origin, direction, raycastParams)
-
-				return raycastResult.Position
-			end
-			
-			if Settings.ShowBulletTracers == true then
-				local pos = F_CastRay(A_Origin, Arguments[3])
-				CreateTracer(A_Origin, pos)
-			end
-
-			if chance == true and Settings.Silent_Toggle == true then
-				if HitPart then
-					warn(HitPart)
-					Arguments[3] = GetDirection(A_Origin, HitPart.Position)
-					return oldNamecall(unpack(Arguments))
-				else
-					return oldNamecall(...)
+		local chance = CalculateChance(Settings.Silent_AimHitChance)
+		if chance == true and Settings.Silent_Toggle == true then
+			if HitPart then
+				Arguments[3] = GetDirection(A_Origin, HitPart.Position)
+				if Settings.ShowBulletTracers == true then
+					local pos = F_CastRay(A_Origin, Arguments[3])
+					CreateTracer(A_Origin, pos)
+				end
+				return oldNamecall(unpack(Arguments))
+			else
+				if Settings.ShowBulletTracers == true then
+					local pos = F_CastRay(A_Origin, Arguments[3])
+					CreateTracer(A_Origin, pos)
 				end
 			end
-
-		else
-			return oldNamecall(...)
 		end
-	else
-		return oldNamecall(...)
 	end
 
 	return oldNamecall(...)
@@ -1240,7 +1231,7 @@ local Tabs = {
 				local SlientAim_HitChance = CombatSection:NewSlider("Hit chance", "", true, "/", {min = 1, max = 100, default = Settings.Silent_AimHitChance}, function(value)
 					Settings.Silent_AimHitChance = value
 				end)
-				
+
 				--[[
 				local SilentAim_VisibleCheck = CombatSection:NewToggle("Insta hit", Settings.Silent_Aim.InstaHit, function(value)
 					Settings.Silent_Aim.InstaHit = value
@@ -1250,23 +1241,23 @@ local Tabs = {
 				local SilentAim_VisibleCheck = CombatSection:NewToggle("Visible check", Settings.Silent_VisibleCheck, function(value)
 					Settings.Silent_VisibleCheck = value
 				end)--:AddKeybind()
-				
+
 				local Silent_IgnoreFriends = CombatSection:NewToggle("Ignore friends", Settings.Silent_VisibleCheck, function(value)
 					Settings.Silent_IgnoreFriends = value
 				end)--:AddKeybind()
-				
+
 				local Silent_IgnoreNPCs = CombatSection:NewToggle("Ignore NPCs", Settings.Silent_VisibleCheck, function(value)
 					Settings.Silent_IgnoreNPCs = value
 				end)--:AddKeybind()
-				
+
 				local Silent_ShowFOV = CombatSection:NewToggle("Show FOV", Settings.Silent_VisibleCheck, function(value)
 					Settings.Silent_ShowFOV = value
 				end)--:AddKeybind()
-				
+
 				local Silent_ShowSilentTarget = CombatSection:NewToggle("Show silent target", Settings.Silent_VisibleCheck, function(value)
 					Settings.Silent_ShowSilentTarget = value
 				end)--:AddKeybind()
-				
+
 				Toggles['Silent_Toggle'] = SilentAim_Toggle
 				Toggles['Silent_IgnoreNPCs'] = Silent_IgnoreNPCs
 				Toggles['Silent_IgnoreFriends'] = Silent_IgnoreFriends
@@ -1287,7 +1278,7 @@ local Tabs = {
 				local InfiniteStamina = Movement:NewToggle("Infinite stamina", Settings.Movement_InfiniteStamina, function(value)
 					Settings.Movement_InfiniteStamina = value
 				end):AddKeybind()
-				
+
 				Toggles['Movement_InfiniteStamina'] = InfiniteStamina
 			end,
 		}
@@ -1312,7 +1303,7 @@ local Tabs = {
 				local OpenLootOnLockpick = QoL:NewToggle("Open loot on lockpick", Settings.QoL_OpenLootOnLockpick, function(value)
 					Settings.QoL_OpenLootOnLockpick = value
 				end)--:AddKeybind()
-				
+
 				Toggles['QoL_AutoLockpick'] = AutoLockPick
 				Sliders['QoL_LockpickWait'] = LockRNG
 				Toggles['QoL_OpenLootOnLockpick'] = OpenLootOnLockpick
@@ -1392,17 +1383,17 @@ local Tabs = {
 						Selector2:UpdateCurrentSelected(Settings.PlayerNotifications_Kits)
 						return ItemInTable
 					end
-					
+
 					if ItemInTable then
 						table.remove(Settings.PlayerNotifications_Kits, ItemInTable)
 					else
 						table.insert(Settings.PlayerNotifications_Kits, value)
 					end
-					
+
 					Selector2:UpdateCurrentSelected(Settings.PlayerNotifications_Kits)
 					return ItemInTable
 				end)
-				
+
 				Toggles['NotifItems_Enabled'] = NotifItemsToggle
 				MultiSelectors['NotifItems_NotifItems'] = Selector1
 				Toggles['PlayerNotifications_Enabled'] = PlayerNotifsToggle
@@ -1417,7 +1408,7 @@ local Tabs = {
 					II_C()
 					Settings.QoL_InstaInteract = value
 				end)--:AddKeybind()
-				
+
 				Toggles['QoL_InstaInteract'] = InstaHD
 			end,
 		}
@@ -1458,7 +1449,7 @@ local Tabs = {
 				local SaveButton = Configuration:NewButton("Save config", function()
 					local EncodedConfig = HttpService:JSONEncode(Settings)
 					Configs[ConfigSaveName] = EncodedConfig
-					
+
 					if not table.find(ConfigNames, ConfigSaveName) then
 						Notif:Notify('Saved new config: '..ConfigSaveName, 4, "success")
 						Selector1:AddOption(ConfigSaveName)
@@ -1485,7 +1476,7 @@ local Tabs = {
 						local IsSelector = Selectors[ConfigName]
 						local IsMultiSelector = MultiSelectors[ConfigName]
 						Settings[ConfigName] = Value
-						
+
 						if IsToggle then
 							IsToggle:Set(Value)
 						elseif IsSlider then
@@ -1500,7 +1491,7 @@ local Tabs = {
 					Notif:Notify('Loaded config: '..ConfigSaveName, 4, "success")
 					print("Loaded xd", Config)
 				end)
-				
+
 				local DeleteButton = Configuration:NewButton("Delete config", function()
 					local Config = Configs[SelectedConfig]
 					if not Config then
@@ -1528,7 +1519,7 @@ for _, Buttons:TextButton in Gui:GetDescendants() do
 		Buttons.MouseButton1Click:Connect(function()
 			PlaySound(SoundList.Click1)
 		end)
-		
+
 		Buttons.MouseEnter:Connect(function()
 			PlaySound(SoundList.Hover1)
 		end)
@@ -1568,8 +1559,13 @@ RunService.RenderStepped:Connect(function()
 			end
 		end,
 		['SilentStuff'] = function()
+			if Settings.Silent_Toggle then
+				HitPart = GetClosestPlayer()
+			else
+				HitPart = nil
+			end
+			
 			if Settings.Silent_ShowSilentTarget == true then-- Silent target highlight
-				local HitPart = GetClosestPlayer()
 				if HitPart then
 					local Char = HitPart.Parent
 					SilentTargetHightLight.Parent = Char
@@ -1579,7 +1575,7 @@ RunService.RenderStepped:Connect(function()
 			else
 				SilentTargetHightLight.Parent = nil
 			end
-			
+
 			if Settings.Silent_ShowFOV then--Silent Ball
 				Drawing_FOVCircle.Visible = true
 				Drawing_FOVCircle.Radius = Settings.Silent_AimFov
