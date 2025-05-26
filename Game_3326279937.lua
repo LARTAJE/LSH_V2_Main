@@ -751,9 +751,6 @@ local function GetClosestPlayer()
 	local Closest
 	local DistanceToMouse
 	local ToCheck = Settings.Silent_IgnoreNPCs == false and NPCList or {}
-	for _, npc in NPCList do
-		warn(npc)
-	end
 	for _, Char in CharList do
 		table.insert(ToCheck, Char)
 	end
@@ -1139,6 +1136,7 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 
 		local chance = CalculateChance(Settings.Silent_AimHitChance)
 		if chance == true and Settings.Silent_Toggle == true then
+			warn('huh?',checkcaller(), Arguments[1])
 			if HitPart then
 				Arguments[3] = GetDirection(A_Origin, HitPart.Position)
 				if Settings.ShowBulletTracers == true then
@@ -1527,6 +1525,7 @@ for _, Buttons:TextButton in Gui:GetDescendants() do
 end
 
 Get_G()
+local SilentUpdateTick = tick()
 RunService.RenderStepped:Connect(function()
 	local Functions = {
 		['Killaura'] = function()
@@ -1560,7 +1559,10 @@ RunService.RenderStepped:Connect(function()
 		end,
 		['SilentStuff'] = function()
 			if Settings.Silent_Toggle then
-				HitPart = GetClosestPlayer()
+				if tick() - SilentUpdateTick >= 0.025 then
+					SilentUpdateTick = tick()
+					HitPart = GetClosestPlayer()
+				end
 			else
 				HitPart = nil
 			end
