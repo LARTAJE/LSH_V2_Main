@@ -965,7 +965,6 @@ end
 local function ItemAdded(Item,Method)
 
 	if Settings.NotifItems_Enabled == true then
-
 		local ItemStat = ItemStats[Item.Name]
 		local Suc, Err = pcall(function()
 			if ItemStat and (Settings.NotifItems_NotifItems[ItemStat.Type] == true)
@@ -1070,7 +1069,7 @@ local function ProximityPromptStuff()
 				end
 
 				if Settings.QoL_AutoLockpick == true then
-					task.wait(Settings.QoL_LockpickWait)
+					task.wait(Settings.QoL_LockpickWait + 0.1)
 					LockPick(ToLockPick,true)
 
 					if Settings.QoL_OpenLootOnLockpick == true then
@@ -1095,6 +1094,8 @@ local function ProximityPromptStuff()
 	end
 	game.ProximityPromptService.PromptShown:Connect(PromptSetUp)
 end
+
+ProximityPromptStuff()
 
 local oldNamecall
 
@@ -1230,7 +1231,7 @@ local Tabs = {
 
 				local SilentAim_Toggle = CombatSection:NewToggle("Toggle", Settings.Silent_Toggle, function(value)
 					Settings.Silent_Toggle = value
-				end)--:AddKeybind()
+				end):AddKeybind()
 
 				local SlientAim_FOV = CombatSection:NewSlider("Silent FOV", "", true, "/", {min = 0, max = 2000, default = Settings.Silent_AimFov}, function(value)
 					Settings.Silent_AimFov = value
@@ -1250,7 +1251,27 @@ local Tabs = {
 					Settings.Silent_VisibleCheck = value
 				end)--:AddKeybind()
 				
+				local Silent_IgnoreFriends = CombatSection:NewToggle("Ignore friends", Settings.Silent_VisibleCheck, function(value)
+					Settings.Silent_IgnoreFriends = value
+				end)--:AddKeybind()
+				
+				local Silent_IgnoreNPCs = CombatSection:NewToggle("Ignore NPCs", Settings.Silent_VisibleCheck, function(value)
+					Settings.Silent_IgnoreNPCs = value
+				end)--:AddKeybind()
+				
+				local Silent_ShowFOV = CombatSection:NewToggle("Show FOV", Settings.Silent_VisibleCheck, function(value)
+					Settings.Silent_ShowFOV = value
+				end)--:AddKeybind()
+				
+				local Silent_ShowSilentTarget = CombatSection:NewToggle("Show silent target", Settings.Silent_VisibleCheck, function(value)
+					Settings.Silent_ShowSilentTarget = value
+				end)--:AddKeybind()
+				
 				Toggles['Silent_Toggle'] = SilentAim_Toggle
+				Toggles['Silent_IgnoreNPCs'] = Silent_IgnoreNPCs
+				Toggles['Silent_IgnoreFriends'] = Silent_IgnoreFriends
+				Toggles['Silent_ShowSilentTarget'] = Silent_ShowSilentTarget
+				Toggles['Silent_ShowFOV'] = Silent_ShowFOV
 				Sliders['Silent_AimFov'] = SlientAim_FOV
 				Sliders['Silent_AimHitChance'] = SlientAim_HitChance
 				Toggles['Silent_VisibleCheck'] = SilentAim_VisibleCheck
