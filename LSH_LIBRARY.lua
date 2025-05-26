@@ -2091,7 +2091,7 @@ function library:Init(key)
 			if UserInputService.WindowFocused then
 				UserInputService.InputBegan:Connect(function(c, p)
 					if not p then
-						if c.KeyCode.Name == ChosenKey and not ChatTextBox:IsFocused() then
+						if c.KeyCode.Name == ChosenKey then
 							callback(ChosenKey)
 							return
 						end
