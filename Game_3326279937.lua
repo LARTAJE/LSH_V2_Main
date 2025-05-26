@@ -733,7 +733,7 @@ local function IsCharacterVisible(Character)
 		return
 	end 
 
-	local PlayerRoot = Character:FindFirstChild(Settings.Silent_TargetPart.Value) or Character:FindFirstChild("HumanoidRootPart")
+	local PlayerRoot = Character:FindFirstChild(Settings.Silent_TargetPart) or Character:FindFirstChild("HumanoidRootPart")
 
 	if not PlayerRoot then
 		return
@@ -762,11 +762,11 @@ local function GetClosestPlayer()
 			continue
 		end
 
-		if Settings.Silent_VisibleCheck.Value and not IsCharacterVisible(Character) then
+		if Settings.Silent_VisibleCheck and not IsCharacterVisible(Character) then
 			continue
 		end
 		local Player = PlayerService:GetPlayerFromCharacter(Character)
-		if Player and Settings.Silent_IgnoreFriends.Value and Player:IsFriendsWith(LocalPlayer.UserId) then
+		if Player and Settings.Silent_IgnoreFriends and Player:IsFriendsWith(LocalPlayer.UserId) then
 			continue
 		end
 
@@ -780,8 +780,8 @@ local function GetClosestPlayer()
 
 		local Distance = (GetMousePosition() - ScreenPosition).Magnitude
 
-		if Distance <= (DistanceToMouse or Settings.Silent_AimFov.Value or 2000) then
-			Closest = ((Settings.Silent_TargetPart.Value == "Random" and Character[ValidTargetParts[math.random(1, #ValidTargetParts)]]) or Character[Settings.Silent_TargetPart.Value])
+		if Distance <= (DistanceToMouse or Settings.Silent_AimFov or 2000) then
+			Closest = ((Settings.Silent_TargetPart == "Random" and Character[ValidTargetParts[math.random(1, #ValidTargetParts)]]) or Character[Settings.Silent_TargetPart])
 			DistanceToMouse = Distance
 		end
 
@@ -797,17 +797,17 @@ local function InjectCustomConfig()
 				if type(Module.Firing) ~= 'table' then
 					continue
 				end
-				if Settings.GunMod_NoRecoil.Value then
+				if Settings.GunMod_NoRecoil then
 					rawset(Module.Firing, 'Recoil', NumberRange.new(0, 0))
 					rawset(Module.Firing, 'Shake', 0)
 				end
-				if Settings.GunMod_RapidFire.Value then
+				if Settings.GunMod_RapidFire then
 					for _, Mode in Module.Modes do
 						rawset(Mode, 'Automatic', true)
 						rawset(Mode, 'RPM', 999999)
 					end
 				end
-				if Settings.GunMod_NoSpread.Value then
+				if Settings.GunMod_NoSpread then
 					rawset(Module.Firing, 'Spread', 0)
 				end
 			end
@@ -1035,7 +1035,7 @@ local function ProximityPromptStuff()
 		for _, Item in pairs(ItemsInLootTable) do
 			local ItemStat = ItemStats[Item.Name]
 
-			if ItemStat and (Options.AutoLootFilter.Value[ItemStat.Type] == true) or ItemStat.Contraband == true and (Options.AutoLootFilter.Value[ItemStat.Contraband] == true) then
+			if ItemStat and (Options.AutoLootFilter[ItemStat.Type] == true) or ItemStat.Contraband == true and (Options.AutoLootFilter[ItemStat.Contraband] == true) then
 				PickUpItem(LootTable,Item,true)
 				task.wait(0.5)
 			end
@@ -1043,12 +1043,12 @@ local function ProximityPromptStuff()
 		end
 
 
-		if Settings.AutoLootFilter.Value["Cash"] == true then
+		if Settings.AutoLootFilter["Cash"] == true then
 			task.wait(0.5)
 			PickUpItem(LootTable,"Cash", nil)
 		end
 
-		if Options.AutoLootFilter.Value["Valuables"] == true then
+		if Options.AutoLootFilter["Valuables"] == true then
 			task.wait(0.5)
 			PickUpItem(LootTable,"Valuables",nil)
 		end
@@ -1069,11 +1069,11 @@ local function ProximityPromptStuff()
 					OpenLoot(ToLockPick)
 				end
 
-				if Settings.QoL_AutoLockpick.Value == true then
+				if Settings.QoL_AutoLockpick == true then
 					task.wait(Settings.QoL_LockpickWait)
 					LockPick(ToLockPick,true)
 
-					if Settings.QoL_OpenLootOnLockpick.Value == true then
+					if Settings.QoL_OpenLootOnLockpick == true then
 						OpenLoot(ToLockPick)
 					end
 
@@ -1136,9 +1136,9 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 				return raycastResult.Position
 			end
 
-			if chance == true and Settings.Silent_Toggle.Value == true then
+			if chance == true and Settings.Silent_Toggle == true then
 				if HitPart then
-					if Settings.Silent_InstaHit.Value then
+					if Settings.Silent_InstaHit then
 						local pos = HitPart.CFrame + HitPart.CFrame.LookVector * -2
 						local CfTVec = Vector3.new(pos.X, pos.Y, pos.Z)
 						Arguments[2] = CfTVec
@@ -1151,7 +1151,7 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 				end
 			end
 
-			if Settings.ShowBulletTracers.Value == true then
+			if Settings.ShowBulletTracers == true then
 				local pos = F_CastRay(A_Origin, Arguments[3])
 				CreateTracer(A_Origin, pos)
 			end
@@ -1547,7 +1547,7 @@ RunService.RenderStepped:Connect(function()
 			end
 		end,
 		['SilentStuff'] = function()
-			if Settings.Silent_ShowSilentTarget.Value == true then-- Silent target highlight
+			if Settings.Silent_ShowSilentTarget == true then-- Silent target highlight
 				local HitPart = GetClosestPlayer()
 				if HitPart then
 					local Char = HitPart.Parent
@@ -1559,7 +1559,7 @@ RunService.RenderStepped:Connect(function()
 				SilentTargetHightLight.Parent = nil
 			end
 			
-			if Settings.Silent_ShowFOV.Value then--Silent Ball
+			if Settings.Silent_ShowFOV then--Silent Ball
 				Drawing_FOVCircle.Visible = true
 				Drawing_FOVCircle.Radius = Settings.Silent_AimFov
 				Drawing_FOVCircle.Position = Vector2MousePosition() + Vector2.new(0, 36)
@@ -1568,12 +1568,12 @@ RunService.RenderStepped:Connect(function()
 			end
 		end,
 		['MovementStuff'] = function()
-			if Settings.Movement_InfiniteStamina.Value == true then
+			if Settings.Movement_InfiniteStamina == true then
 				PlayerGui:SetAttribute("Stamina", 100)
 			end
 		end,
 		['GunModStuff'] = function()
-			if Settings.GunMod_GamepadRecoil.Value == true and ClientG then
+			if Settings.GunMod_GamepadRecoil == true and ClientG then
 				PlatformHandler.Enabled = false
 				ClientG.CurrentInputType = "Gamepad"
 			else
