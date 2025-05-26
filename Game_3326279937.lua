@@ -498,8 +498,8 @@ local Settings = {
 	Silent_ShowSilentTarget = false,
 	Silent_IgnoreNPCs = false,
 	Silent_AimFov = 100,
-	Silent_AimDistance = 250,
-	Silent_AimHitChance = 50,
+	Silent_AimDistance = 1500,
+	Silent_AimHitChance = 100,
 	Silent_TargetPart = 'Head',
 
 	Movement_InfiniteStamina = false,
@@ -531,7 +531,7 @@ local SoundList = {
 		Speed = 2;
 		Parent = workspace;
 		DeleteTime = 5;
-		Volume = 0.1
+		Volume = 0.35
 	};
 	['Click1'] = {
 		SoundId = 'rbxassetid://6895079853';
@@ -550,6 +550,13 @@ local SoundList = {
 		SoundId = 'rbxassetid://3779045779';
 		Speed = 1.5;
 		Parent = workspace;
+		DeleteTime = 5
+	};
+	['Notif_Error2'] = {
+		SoundId = 'rbxassetid://9068077052';
+		Speed = 2;
+		Parent = workspace;
+		Volume = 1.5;
 		DeleteTime = 5
 	}
 }
@@ -757,7 +764,11 @@ local function GetClosestPlayer()
 		return
 	end 
 
-	local ToCheck = Settings.Silent_IgnoreNPCs == false and NPCList or {}
+	local ToCheck = {}
+	for _, NPCChar in NPCList do
+		table.insert(ToCheck, NPCChar)
+	end
+	warn(#NPCList)
 	for _, Char in CharList do
 		table.insert(ToCheck, Char)
 	end
@@ -867,7 +878,7 @@ local function TrackCharacter(Character)
 		end
 		if Settings.PlayerNotifications_NotifDangerItems then
 			Notif:Notify(dsc.Name.." WAS EQUIPPED BY: "..Character.Name, 4, "success")
-			PlaySound(SoundList.Notif_Error1)
+			PlaySound(SoundList.Notif_Error2)
 		end
 	end)
 
@@ -890,15 +901,15 @@ local function TrackCharacter(Character)
 
 		if Operator >= 3 then
 			Notif:Notify('!!Operator!! '..Character.Name, 4, "success")
-			PlaySound(SoundList.Notif_Error1)
+			PlaySound(SoundList.Notif_Error2)
 		end
 		if Commander >= 3 then
 			Notif:Notify('!!Commander!! '..Character.Name, 4, "success")
-			PlaySound(SoundList.Notif_Error1)
+			PlaySound(SoundList.Notif_Error2)
 		end
 		if BladeDancer >= 3 then
 			Notif:Notify('!!Blade dancer!! '..Character.Name, 4, "success")
-			PlaySound(SoundList.Notif_Error1)
+			PlaySound(SoundList.Notif_Error2)
 		end
 	end
 	Character:WaitForChild('CurrentGear').ChildAdded:Connect(CheckForKit)
@@ -940,7 +951,7 @@ local function PlayerAdded(Player, Executed)
 		if Role ~= "Member" or GroupStates.CrimAdminGroup and Settings.PlayerNotifications_AdminJoins then
 			--LocalPlayer:Kick("[LackSkill Hub] - Detected an Admin/Contributor within the server!")
 			Notif:Notify(Player.Name.." Is a Admin/Contributor, please be careful!", 4, "success")
-			PlaySound(SoundList.Notif_Error1)
+			PlaySound(SoundList.Notif_Error2)
 		elseif Settings.PlayerNotifications_PlayerJoins and not Executed then
 			Notif:Notify(Player.Name.." Joined, be careful!", 4, "success")
 			PlaySound(SoundList.Notif_Success1)
@@ -1235,7 +1246,7 @@ local Tabs = {
 					Settings.Silent_AimFov = value
 				end)
 				
-				local SlientAim_Distance = CombatSection:NewSlider("Max distance", "", true, "/", {min = 0, max = 400, default = Settings.Silent_AimFov}, function(value)
+				local SlientAim_Distance = CombatSection:NewSlider("Max distance", "", true, "/", {min = 0, max = 10000, default = Settings.Silent_AimFov}, function(value)
 					Settings.Silent_AimDistance = value
 				end)
 
@@ -1573,7 +1584,7 @@ RunService.RenderStepped:Connect(function()
 		end,
 		['SilentStuff'] = function()
 			if Settings.Silent_Toggle then
-				if tick() - SilentUpdateTick >= 0.05 then
+				if tick() - SilentUpdateTick >= 0.03 then
 					SilentUpdateTick = tick()
 					HitPart = GetClosestPlayer()
 				end
