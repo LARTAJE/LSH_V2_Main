@@ -1551,80 +1551,80 @@ end
 
 Get_G()
 local SilentUpdateTick = tick()
-RunService.RenderStepped:Connect(function()
-	local Functions = {
-		['Killaura'] = function()
-			if Settings.KillAura_Toggle then
-				if Settings.KillAura_Players then
-					for i,char in CharList do
-						pcall(function()
-							if char and char.Parent and char.PrimaryPart and (LocalPlayer.Character.PrimaryPart.Position - char.PrimaryPart.Position).Magnitude < Settings.KillAura_Range  and char:FindFirstChildWhichIsA('Humanoid') and char:FindFirstChildWhichIsA('Humanoid').Health > 0 then
-								local HitPart = Settings.KillAura_TargetPart
-								local Part = char:FindFirstChild(HitPart)
-								Swing()
-								HitEvent:FireServer(Part, Part.Position)
-							end
-						end)
-					end
+local Functions = {
+	['Killaura'] = function()
+		if Settings.KillAura_Toggle then
+			if Settings.KillAura_Players then
+				for i,char in CharList do
+					pcall(function()
+						if char and char.Parent and char.PrimaryPart and (LocalPlayer.Character.PrimaryPart.Position - char.PrimaryPart.Position).Magnitude < Settings.KillAura_Range  and char:FindFirstChildWhichIsA('Humanoid') and char:FindFirstChildWhichIsA('Humanoid').Health > 0 then
+							local HitPart = Settings.KillAura_TargetPart
+							local Part = char:FindFirstChild(HitPart)
+							Swing()
+							HitEvent:FireServer(Part, Part.Position)
+						end
+					end)
 				end
+			end
 
-				if Settings.KillAura_NPCs then
-					for i,npc in NPCList do
-						pcall(function()
-							if npc and npc.Parent and npc.PrimaryPart and (LocalPlayer.Character.PrimaryPart.Position - npc.PrimaryPart.Position).Magnitude < Settings.KillAura_Range and npc:FindFirstChildWhichIsA('Humanoid') and npc:FindFirstChildWhichIsA('Humanoid').Health > 0 then
-								local HitPart = Settings.KillAura_TargetPart
-								local Part = npc:FindFirstChild(HitPart)
-								Swing()
-								HitEvent:FireServer(Part, Part.Position)
-							end
-						end)
-					end
+			if Settings.KillAura_NPCs then
+				for i,npc in NPCList do
+					pcall(function()
+						if npc and npc.Parent and npc.PrimaryPart and (LocalPlayer.Character.PrimaryPart.Position - npc.PrimaryPart.Position).Magnitude < Settings.KillAura_Range and npc:FindFirstChildWhichIsA('Humanoid') and npc:FindFirstChildWhichIsA('Humanoid').Health > 0 then
+							local HitPart = Settings.KillAura_TargetPart
+							local Part = npc:FindFirstChild(HitPart)
+							Swing()
+							HitEvent:FireServer(Part, Part.Position)
+						end
+					end)
 				end
 			end
-		end,
-		['SilentStuff'] = function()
-			if Settings.Silent_Toggle then
-				if tick() - SilentUpdateTick >= 0.03 then
-					SilentUpdateTick = tick()
-					HitPart = GetClosestPlayer()
-				end
-			else
-				HitPart = nil
+		end
+	end,
+	['SilentStuff'] = function()
+		if Settings.Silent_Toggle then
+			if tick() - SilentUpdateTick >= 0.03 then
+				SilentUpdateTick = tick()
+				HitPart = GetClosestPlayer()
 			end
-			
-			if Settings.Silent_ShowSilentTarget == true then-- Silent target highlight
-				if HitPart then
-					local Char = HitPart.Parent
-					SilentTargetHightLight.Parent = Char
-				else 
-					SilentTargetHightLight.Parent = nil
-				end
-			else
+		else
+			HitPart = nil
+		end
+
+		if Settings.Silent_ShowSilentTarget == true then-- Silent target highlight
+			if HitPart then
+				local Char = HitPart.Parent
+				SilentTargetHightLight.Parent = Char
+			else 
 				SilentTargetHightLight.Parent = nil
 			end
+		else
+			SilentTargetHightLight.Parent = nil
+		end
 
-			if Settings.Silent_ShowFOV then--Silent Ball
-				Drawing_FOVCircle.Visible = true
-				Drawing_FOVCircle.Radius = Settings.Silent_AimFov
-				Drawing_FOVCircle.Position = Vector2MousePosition() + Vector2.new(0, 36)
-			else
-				Drawing_FOVCircle.Visible = false
-			end
-		end,
-		['MovementStuff'] = function()
-			if Settings.Movement_InfiniteStamina == true then
-				PlayerGui:SetAttribute("Stamina", 100)
-			end
-		end,
-		['GunModStuff'] = function()
-			if Settings.GunMod_GamepadRecoil == true and ClientG then
-				PlatformHandler.Enabled = false
-				ClientG.CurrentInputType = "Gamepad"
-			else
-				PlatformHandler.Enabled = true
-			end
-		end,
-	}
+		if Settings.Silent_ShowFOV then--Silent Ball
+			Drawing_FOVCircle.Visible = true
+			Drawing_FOVCircle.Radius = Settings.Silent_AimFov / 2
+			Drawing_FOVCircle.Position = Vector2MousePosition() + Vector2.new(0, 36)
+		else
+			Drawing_FOVCircle.Visible = false
+		end
+	end,
+	['MovementStuff'] = function()
+		if Settings.Movement_InfiniteStamina == true then
+			PlayerGui:SetAttribute("Stamina", 100)
+		end
+	end,
+	['GunModStuff'] = function()
+		if Settings.GunMod_GamepadRecoil == true and ClientG then
+			PlatformHandler.Enabled = false
+			ClientG.CurrentInputType = "Gamepad"
+		else
+			PlatformHandler.Enabled = true
+		end
+	end,
+}
+RunService.RenderStepped:Connect(function()
 	for _, Features in Functions do
 		task.spawn(Features)
 	end
